@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  # The load balancer
+  nginx:
+    image: nginx:1.16.0-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+      - "8000:8000"
+
+  # The web server1
+  front_server1:
+    image: nginx:1.16.0-alpine
+    volumes:
+      - ./front-end/server1.html:/usr/share/nginx/html/index.html
+      - ./front-end/static:/usr/share/nginx/html/static
+      - ./front-end/script.js:/usr/share/nginx/html/script.js
+  # The web server2
+  front_server2:
+    image: nginx:1.16.0-alpine
+    volumes:
+      - ./front-end/server2.html:/usr/share/nginx/html/index.html
+      - ./front-end/static:/usr/share/nginx/html/static
+      - ./front-end/script.js:/usr/share/nginx/html/script.js
+  redis:
+      image: redis
+
+  backend1:
+    build: ./back-end
+    ports:
+        - "5000:5000"
+    volumes:
+        - ./back-end:/code
+    depends_on:
+        - redis
+        - database
+    environment:
+      - PORT=5000
+    tty: true
+    stdin_open: true
+
+  backend2:
+    build: ./back-end
+    ports:
+        - "5001:5001"
+    volumes:
+        - ./back-end:/code
+    depends_on:
+        - redis
+        - database
+    environment:
+      - PORT=5001
+    tty: true
+    stdin_open: true
+
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - ./db-data/:/var/lib/postgresql/data/
+      - ./migrations/init_db.sql:/docker-entrypoint-initdb.d/init.sql

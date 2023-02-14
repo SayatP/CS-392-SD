@@ -1,7 +1,6 @@
 # rebuild and restart backend
 reback: 
-	docker-compose build backend; docker-compose up -d
-
+	docker-compose restart backend1 backend2
 
 # rebuild all and restart
 rebuild: 

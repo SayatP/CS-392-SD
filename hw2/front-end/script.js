@@ -1,8 +1,8 @@
-const buy_url = "http://localhost:8000/products/buy";
+const buy_url = "http://localhost:8000/products/";
 const productList = document.querySelector("#products");
 
 async function getItems() {
-  const list_url = "http://localhost:8000/products/all";
+  const list_url = "http://localhost:8000/products";
   let response = await fetch(list_url, {
     mode: "cors",
     credentials: "include",
@@ -34,7 +34,7 @@ async function insertProductList(products) {
   btns.forEach((btn) => {
     btn.addEventListener("click", (event) => {
       const btn = event.currentTarget;
-      fetch(buy_url + "?id=" + btn.id);
+      fetch(buy_url + btn.id + "/buy");
     });
   });
 }

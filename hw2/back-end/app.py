@@ -20,24 +20,45 @@ app = Flask(__name__)
 redis = Redis(host="redis", port=6379)
 
 
-@app.route("/products/buy")
-def buy():
-    _id = request.args["id"]
-    redis.incr(_id)
-    resp = {
-        "action": f"Someone bought item with {_id}!",
-        "summary": f"This has been bought {redis.get(_id)} times!",
-    }
-    cur.execute("UPDATE products SET quantity = quantity - 1 WHERE id = (%s);", (_id,))
-    conn.commit()
-    return jsonify(resp)
-
-
-@app.route("/products/all")
-def list_products():
+@app.route("/products/<_id>/buy")
+def buy(_id):
     cur.execute(
-        "select id,image_src,price,title,quantity from products order by date_added;"
+        "UPDATE products SET quantity = quantity - 1 WHERE id = (%s);", (_id,))
+    affected_row_count = cur.rowcount
+    conn.commit()
+    if affected_row_count == 1:
+        redis.incr(_id)
+        resp = {
+            "action": f"You bought item with id:{_id}.",
+            "summary": f"This item has been bought {redis.get(_id)} times.",
+        }
+        return jsonify(resp), 200
+    else:
+        resp = {
+            "action": f"You tried to buy item with id:{_id}.",
+            "error": f"This item is not found",
+        }
+        return jsonify(resp), 400  # Could also use 404
+
+
+@app.route("/products")
+def list_products():
+    limit = request.args.get("limit", None)
+    offset = request.args.get("offset", None)
+
+    statement = (
+        "select id,image_src,price,title,quantity from products order by date_added"
     )
+
+    if offset is not None:
+        statement += f" offset {offset}"
+
+    if limit is not None:
+        statement += f" limit {limit}"
+
+    statement += ";"
+
+    cur.execute(statement)
     data = cur.fetchall()
 
     response = [
@@ -85,15 +106,27 @@ def insert_product():
 @app.route("/products/<_id>", methods=["DELETE"])
 def delete_product(_id):
     cur.execute("DELETE FROM products WHERE id=%s", (_id,))
+    if cur.rowcount > 0:
+        msg = {"message": f"Deleted {cur.rowcount} rows"}
+        status_code = 200
+    else:
+        msg = {"error": f"Product with id {_id} not found"}
+        status_code = 400  # again can be also 404 if you want to
     conn.commit()
-    return jsonify(200)
+    return jsonify(msg), status_code
 
 
 @app.route("/products/<_id>", methods=["GET"])
 def get_product(_id):
     cur.execute(
-        "SELECT id,image_src,price,title,quantity FROM products WHERE id=%s", (_id,)
+        "SELECT id,image_src,price,title,quantity FROM products WHERE id=%s", (
+            _id,)
     )
+    if cur.rowcount == 0:
+        msg = {"error": f"Product with id {_id} not found"}
+        status_code = 400  # again can be also 404 if you want to
+        return jsonify(msg), status_code
+
     row = cur.fetchone()
     return jsonify(
         {

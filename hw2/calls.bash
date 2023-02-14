@@ -12,7 +12,6 @@ curl -X POST -H "Content-Type: application/json" \
 
 curl -X GET  http://localhost:8000/products/4
 
-curl -X GET  http://localhost:8000/products/all
 
 curl -X DELETE  http://localhost:8000/products/9
 
@@ -25,3 +24,11 @@ curl -X PUT -H "Content-Type: application/json" \
  curl -X PUT -H "Content-Type: application/json" \
      -d  '{"price": 777,"title": "Oreoss"}' \
     http://localhost:8000/products/11
+
+
+curl -X GET  http://localhost:8000/products/4/buy
+
+
+curl  -sS 'http://localhost:8000/products?limit=2&offset=2'
+
+curl -X GET  http://localhost:8000/products

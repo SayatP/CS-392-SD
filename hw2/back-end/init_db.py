@@ -15,19 +15,22 @@ cur = conn.cursor()
 #     'date_added date DEFAULT CURRENT_TIMESTAMP);'
 # )
 
-cur.execute('INSERT INTO products (image_src, title, price)'
-            'VALUES (%s, %s, %s)',
-            ('./static/cb.jpg',
-             'Chess board.!',
-             26,
-             ))
-cur.execute('INSERT INTO products (image_src, title, price)'
-            'VALUES (%s, %s, %s)',
-            ('./static/shoes.jpg',
-             'Shoes.',
-             64,
-             )
-            )
+cur.execute(
+    "INSERT INTO products (image_src, title, price)" "VALUES (%s, %s, %s)",
+    (
+        "./static/cb.jpg",
+        "Chess board.!",
+        26,
+    ),
+)
+cur.execute(
+    "INSERT INTO products (image_src, title, price)" "VALUES (%s, %s, %s)",
+    (
+        "./static/shoes.jpg",
+        "Shoes.",
+        64,
+    ),
+)
 
 conn.commit()
 cur.close()

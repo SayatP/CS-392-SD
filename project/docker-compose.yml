@@ -9,6 +9,11 @@ services:
     ports:
       - "8080:80"
       - "8000:8000"
+    depends_on:
+      - front_server1
+      - front_server2
+      - backend1
+      - backend2
 
   # The web server1
   front_server1:

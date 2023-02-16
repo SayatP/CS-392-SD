@@ -5,8 +5,9 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from redis import Redis
-
 import psycopg2
+
+from utils import validate_string_as_number
 
 conn = psycopg2.connect(
     host="database",
@@ -45,6 +46,12 @@ def buy(_id):
 def list_products():
     limit = request.args.get("limit", None)
     offset = request.args.get("offset", None)
+
+    if not validate_string_as_number(limit):
+        return jsonify({"error": "bad value for limit"}), 400
+
+    if not validate_string_as_number(offset):
+        return jsonify({"error": "bad value for offset"}), 400
 
     statement = (
         "select id,image_src,price,title,quantity from products order by date_added"

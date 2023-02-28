@@ -32,3 +32,9 @@ curl -X GET  http://localhost:8000/products/4/buy
 curl  -sS 'http://localhost:8000/products?limit=2&offset=2'
 
 curl -X GET  http://localhost:8000/products
+
+curl -X POST -H "Content-Type: application/json" \
+    -d  '{"first_name": "John", "last_name": "Doe", "address": "Example st, 123", "email": "example@mail.com", "phone_number": "+1234567890"}' \
+    http://localhost:8000/users/
+
+curl -X GET  http://localhost:8000/products/1/buy?email=example@mail.com

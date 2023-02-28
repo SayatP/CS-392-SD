@@ -27,8 +27,18 @@ def buy(_id):
         "UPDATE products SET quantity = quantity - 1 WHERE id = (%s);", (_id,))
     affected_row_count = cur.rowcount
     conn.commit()
+    user_email = request.args.get("email", None)
     if affected_row_count == 1:
         redis.incr(_id)
+        
+        if user_email:
+            redis.lpush(user_email, _id)
+
+            # To test in in redis container,
+            # redis-cli
+            # LLEN "example@mail.com"
+            # LPOP "example@mail.com"
+
         resp = {
             "action": f"You bought item with id:{_id}.",
             "summary": f"This item has been bought {redis.get(_id)} times.",
@@ -161,6 +171,23 @@ def update_product(_id):
     conn.commit()
     return jsonify(200)
 
+@app.route("/users/", methods=["POST"])
+def insert_user():
+    data = json.loads(request.data)
+    cur.execute(
+        "INSERT INTO users (first_name, last_name, address, email, phone_number)"
+        "VALUES (%s, %s, %s, %s, %s)",
+        (
+            data["first_name"],
+            data["last_name"],
+            data["address"],
+            data["email"],
+            data["phone_number"],
+        ),
+    )
+
+    conn.commit()
+    return jsonify(201)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.environ["PORT"], debug=True)

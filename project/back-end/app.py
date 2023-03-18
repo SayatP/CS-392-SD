@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 
 from flask import Flask
 from flask import request
@@ -188,6 +189,11 @@ def insert_user():
 
     conn.commit()
     return jsonify(201)
+
+@app.before_request
+def hook():
+    tag = os.getenv("SERVER_TAG")
+    redis.lpush(tag, request.url + " " + str(datetime.datetime.utcnow()))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=os.environ["PORT"], debug=True)

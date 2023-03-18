@@ -9,11 +9,9 @@ curl -X POST -H "Content-Type: application/json" \
     http://localhost:8000/products/
 
 
-
 curl -X GET  http://localhost:8000/products/4
 
-
-curl -X DELETE  http://localhost:8000/products/9
+curl -X DELETE  http://localhost:8000/products/3
 
 
 curl -X PUT -H "Content-Type: application/json" \
@@ -23,15 +21,13 @@ curl -X PUT -H "Content-Type: application/json" \
 
  curl -X PUT -H "Content-Type: application/json" \
      -d  '{"price": 777,"title": "Oreoss"}' \
-    http://localhost:8000/products/11
+    http://localhost:8000/products/4
 
 
 curl -X GET  http://localhost:8000/products/4/buy
 
 
 curl  -sS 'http://localhost:8000/products?limit=2&offset=2'
-
-curl -X GET  http://localhost:8000/products
 
 curl -X POST -H "Content-Type: application/json" \
     -d  '{"first_name": "John", "last_name": "Doe", "address": "Example st, 123", "email": "example@mail.com", "phone_number": "+1234567890"}' \

@@ -4,4 +4,5 @@ WORKDIR /code
 RUN pip install -r requirements.txt
 WORKDIR /code
 ADD ./app.py /code/app.py
-CMD python app.py
+CMD gunicorn --bind 0.0.0.0:5000 app:app
+

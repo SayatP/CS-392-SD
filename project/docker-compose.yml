@@ -35,7 +35,7 @@ services:
         - database
     environment:
       - PORT=5000
-      - SERVER_TAG=ONE
+      - SERVER_TAG=SERVER_ONE
     tty: true
     stdin_open: true
 
@@ -50,7 +50,7 @@ services:
         - database
     environment:
       - PORT=5001
-      - SERVER_TAG=TWO
+      - SERVER_TAG=SERVER_TWO
     tty: true
     stdin_open: true
 

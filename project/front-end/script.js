@@ -2,7 +2,7 @@ const buy_url = "http://localhost:8000/products/";
 const productList = document.querySelector("#products");
 
 async function getItems() {
-  const list_url = "http://localhost:8000/products";
+  const list_url = "http://localhost:8000/products?offset=0&limit=20";
   let response = await fetch(list_url, {
     mode: "cors",
     credentials: "include",

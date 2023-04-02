@@ -5,6 +5,8 @@ import datetime
 from flask import Flask
 from flask import request
 from flask import jsonify
+
+from flask_caching import Cache
 from redis import Redis
 import psycopg2
 
@@ -20,6 +22,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 app = Flask(__name__)
 redis = Redis(host="redis", port=6379)
+cache = Cache(app, config={'CACHE_TYPE': 'RedisCache', 'CACHE_REDIS_URL': 'redis://redis:6379/0'})
 
 
 @app.route("/products/<_id>/buy")
@@ -44,6 +47,7 @@ def buy(_id):
             "action": f"You bought item with id:{_id}.",
             "summary": f"This item has been bought {redis.get(_id)} times.",
         }
+        cache.clear()
         return jsonify(resp), 200
     else:
         resp = {
@@ -54,6 +58,7 @@ def buy(_id):
 
 
 @app.route("/products")
+@cache.cached(timeout=50, key_prefix='list_products', query_string=True)
 def list_products():
     limit = request.args.get("limit", None)
     offset = request.args.get("offset", None)
@@ -116,7 +121,7 @@ def insert_product():
                 data["quantity"],
             ),
         )
-
+    cache.clear()
     conn.commit()
     return jsonify(201)
 
@@ -130,11 +135,13 @@ def delete_product(_id):
     else:
         msg = {"error": f"Product with id {_id} not found"}
         status_code = 400  # again can be also 404 if you want to
+    cache.clear()
     conn.commit()
     return jsonify(msg), status_code
 
 
 @app.route("/products/<_id>", methods=["GET"])
+@cache.cached(timeout=50, key_prefix='list_products', query_string=True)
 def get_product(_id):
     cur.execute(
         "SELECT id,image_src,price,title,quantity FROM products WHERE id=%s", (
@@ -169,6 +176,7 @@ def update_product(_id):
     values.append(_id)
 
     cur.execute("UPDATE products SET " + s + " WHERE id = (%s);", (values))
+    cache.clear()
     conn.commit()
     return jsonify(200)
 

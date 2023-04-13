@@ -6,9 +6,10 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 
-from flask_caching import Cache
-from redis import Redis
 import psycopg2
+from redis import Redis
+from kafka import KafkaProducer
+from flask_caching import Cache
 
 from utils import validate_string_as_number
 
@@ -24,6 +25,11 @@ app = Flask(__name__)
 redis = Redis(host="redis", port=6379)
 cache = Cache(app, config={'CACHE_TYPE': 'RedisCache', 'CACHE_REDIS_URL': 'redis://redis:6379/0'})
 
+kafka_producer = KafkaProducer(
+    bootstrap_servers=['kafka:9092'],
+    value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+    api_version=(0, 10, 1)
+)
 
 @app.route("/products/<_id>/buy")
 def buy(_id):
@@ -34,18 +40,13 @@ def buy(_id):
     user_email = request.args.get("email", None)
     if affected_row_count == 1:
         redis.incr(_id)
-        
-        if user_email:
-            redis.lpush(user_email, _id)
 
-            # To test in in redis container,
-            # redis-cli
-            # LLEN "example@mail.com"
-            # LPOP "example@mail.com"
+        if user_email:
+            data = {"email": user_email, "product_id": _id}
+            kafka_producer.send('orders', value=data)
 
         resp = {
             "action": f"You bought item with id:{_id}.",
-            "summary": f"This item has been bought {redis.get(_id)} times.",
         }
         cache.clear()
         return jsonify(resp), 200
